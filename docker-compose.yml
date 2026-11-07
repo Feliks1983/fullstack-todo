@@ -1,0 +1,115 @@
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        REACT_APP_API_URL: /api
+    environment:
+      - REACT_APP_API_URL=/api
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - frontend-network
+
+  backend:
+    build: 
+      context: ./backend
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - MONGODB_URI=mongodb://mongo:27017/todoapp
+      - REDIS_URL=redis://redis:6379
+      - CORS_ORIGIN=http://localhost:3000
+      - MAX_FILE_SIZE=5242880
+      - UPLOAD_DIR=/app/backend/uploads
+      - LOG_LEVEL=debug
+      - JWT_SECRET=change_me_to_a_random_string_of_at_least_32_chars
+      - ENABLE_ANALYTICS=true
+      - ENABLE_FILE_UPLOAD=true
+      - ENABLE_METRICS=false
+    volumes:
+      - ./uploads:/app/backend/uploads
+      - ./logs:/app/backend/logs
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - backend-network
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:6
+    container_name: todo-mongo
+    environment:
+      - MONGO_INITDB_DATABASE=todoapp
+    volumes:
+      - mongo-data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand('ping').ok\" | grep -q 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - backend-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - backend-network
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/health >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - frontend-network
+      - backend-network
+    restart: unless-stopped
+    
+networks:
+  frontend-network:
+    driver: bridge
+  backend-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    name: todo_mongo-data
+  redis-data:
+    name: todo_redis-data

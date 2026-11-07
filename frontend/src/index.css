@@ -1,0 +1,42 @@
+.todo-app { max-width: 820px; margin: 0 auto; padding: 24px 16px 48px; }
+.todo-app h1 { margin: 0 0 4px; }
+.todo-stats { color: #616e7c; margin-bottom: 20px; }
+
+.todo-form, .todo-filters {
+  background: #fff; border-radius: 10px; padding: 16px; margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  display: grid; gap: 10px;
+}
+.todo-form .row, .todo-filters { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+.todo-form .row { display: grid; gap: 10px; }
+.todo-form input, .todo-form textarea, .todo-form select, .todo-filters select {
+  width: 100%; padding: 8px 10px; border: 1px solid #cbd2d9; border-radius: 6px; font: inherit;
+}
+.todo-form textarea { resize: vertical; min-height: 60px; }
+
+button {
+  padding: 8px 14px; border: 0; border-radius: 6px; cursor: pointer;
+  background: #2f6fed; color: #fff; font: inherit;
+}
+button:disabled { opacity: .6; cursor: default; }
+button.secondary { background: #e4e7eb; color: #1f2933; }
+button.danger { background: #d64545; }
+
+.todo-item {
+  background: #fff; border-radius: 10px; padding: 14px 16px; margin-bottom: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08); border-left: 5px solid #9aa5b1;
+}
+.todo-item.high { border-left-color: #d64545; }
+.todo-item.medium { border-left-color: #f0b429; }
+.todo-item.low { border-left-color: #3ebd93; }
+.todo-item.done .todo-title { text-decoration: line-through; color: #9aa5b1; }
+
+.todo-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.todo-title { font-weight: 600; font-size: 1.05rem; }
+.todo-meta { font-size: .85rem; color: #616e7c; margin-top: 4px; }
+.todo-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.badge { display: inline-block; padding: 1px 8px; border-radius: 10px; background: #e4e7eb; margin-right: 6px; }
+.attachments { margin: 8px 0 0; padding: 0; list-style: none; font-size: .9rem; }
+.attachments a { color: #2f6fed; text-decoration: none; }
+.error { background: #fde8e8; color: #9b1c1c; padding: 10px 14px; border-radius: 6px; margin-bottom: 12px; }
+.pager { display: flex; gap: 12px; align-items: center; justify-content: center; margin-top: 16px; }
