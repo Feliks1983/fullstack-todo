@@ -7,11 +7,12 @@ services:
       - MONGODB_URI=mongodb://mongo:27017/todoapp
       - REDIS_URL=redis://redis:6379
       - CORS_ORIGIN=http://localhost:3000
+      - UPLOAD_DIR=/app/uploads
       - JWT_SECRET=CHANGE_ME_openssl_rand_hex_32_AAAAAAAAAAAAAAAAAAAAAAAA
       - ENABLE_METRICS=true
     volumes:
-      - ./uploads:/app/backend/uploads:rw
-      - ./logs:/app/backend/logs:rw
+      - ./backend/uploads:/app/uploads:rw
+      - app-logs:/app/logs:rw
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"]
       interval: 30s

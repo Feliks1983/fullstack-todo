@@ -27,7 +27,7 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml ps
 docker exec todo-mongo mongodump --db todoapp --out /backup
 
 # Backup volumes
-docker run --rm -v todo_mongo-data:/data -v "$(pwd):/backup" alpine tar czf /backup/mongo-backup.tar.gz -C /data .
+docker run --rm -v todo_mongo-data:/data -v "%cd%:/backup" alpine tar czf /backup/mongo-backup.tar.gz -C /data .
 
 # Restore
 docker run --rm -v todo_mongo-data:/data -v "$(pwd):/backup" alpine tar xzf /backup/mongo-backup.tar.gz -C /data
@@ -35,5 +35,9 @@ docker run --rm -v todo_mongo-data:/data -v "$(pwd):/backup" alpine tar xzf /bac
 GET https://localhost/health
 GET https://localhost/api/todos
 
+для бэкенда
+npm run dev
+
 для фронтенда реакт
-http://localhost
+npm start
+http://localhost:3001

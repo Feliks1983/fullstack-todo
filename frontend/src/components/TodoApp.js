@@ -1,38 +1,44 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import axios from 'axios';
+import { useCallback, useEffect, useRef, useState } from "react";
+import axios from "axios";
 
-const API_URL = (process.env.REACT_APP_API_URL || '/api').replace(/\/$/, '');
+const API_URL = process.env.REACT_APP_API_URL;
 
 const FILES_BASE = /^https?:\/\//.test(API_URL)
   ? `${new URL(API_URL).origin}/uploads/`
-  : '/uploads/';
+  : "/uploads/";
 
-const PRIORITY_LABELS = { low: 'Low', medium: 'Medium', high: 'High' };
-const EMPTY_FORM = { title: '', description: '', priority: 'medium', dueDate: '' };
+const PRIORITY_LABELS = { low: "Low", medium: "Medium", high: "High" };
+const EMPTY_FORM = {
+  title: "",
+  description: "",
+  priority: "medium",
+  dueDate: "",
+};
 
-const formatSize = bytes => {
+const formatSize = (bytes) => {
   if (bytes < 1024) return `${bytes} Б`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} КБ`;
   return `${(bytes / 1024 / 1024).toFixed(1)} МБ`;
 };
 
-const formatDate = iso => (iso ? new Date(iso).toLocaleDateString('ru-RU') : null);
+const formatDate = (iso) =>
+  iso ? new Date(iso).toLocaleDateString("ru-RU") : null;
 
 export default function TodoApp() {
   const [todos, setTodos] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [totals, setTotals] = useState({ all: 0, completed: 0, pending: 0 });
-  const [filters, setFilters] = useState({ status: '', priority: '' });
+  const [filters, setFilters] = useState({ status: "", priority: "" });
   const [page, setPage] = useState(1);
   const [form, setForm] = useState(EMPTY_FORM);
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const fileInput = useRef(null);
 
-  const showError = err =>
-    setError(err.response?.data?.error || err.message || 'Неизвестная ошибка');
+  const showError = (err) =>
+    setError(err.response?.data?.error || err.message || "Неизвестная ошибка");
 
   const loadTodos = useCallback(async () => {
     setLoading(true);
@@ -44,7 +50,7 @@ export default function TodoApp() {
       setTodos(data.todos);
       setPagination(data.pagination);
       setTotals(data.totals);
-      setError('');
+      setError("");
     } catch (err) {
       showError(err);
     } finally {
@@ -56,32 +62,35 @@ export default function TodoApp() {
     loadTodos();
   }, [loadTodos]);
 
-  const onChange = e => setForm({ ...form, [e.target.name]: e.target.value });
+  const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const matchesFilters = todo =>
-    (!filters.status || (filters.status === 'completed') === todo.completed) &&
+  const matchesFilters = (todo) =>
+    (!filters.status || (filters.status === "completed") === todo.completed) &&
     (!filters.priority || filters.priority === todo.priority);
 
-  const onSubmit = async e => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     if (!form.title.trim()) return;
     setSubmitting(true);
     try {
       const body = new FormData();
-      Object.entries(form).forEach(([key, value]) => value && body.append(key, value));
-      files.forEach(file => body.append('attachments', file));
+      Object.entries(form).forEach(
+        ([key, value]) => value && body.append(key, value),
+      );
+      files.forEach((file) => body.append("attachments", file));
       const { data } = await axios.post(`${API_URL}/todos`, body);
       setForm(EMPTY_FORM);
       setFiles([]);
-      if (fileInput.current) fileInput.current.value = '';
-      setTotals(t => ({
+      if (fileInput.current) fileInput.current.value = "";
+      setTotals((t) => ({
         ...t,
         all: t.all + 1,
         pending: t.pending + (data.completed ? 0 : 1),
         completed: t.completed + (data.completed ? 1 : 0),
       }));
-      if (matchesFilters(data)) setTodos(prev => [data, ...prev].slice(0, 10));
-      setError('');
+      if (matchesFilters(data))
+        setTodos((prev) => [data, ...prev].slice(0, 10));
+      setError("");
     } catch (err) {
       showError(err);
     } finally {
@@ -89,13 +98,15 @@ export default function TodoApp() {
     }
   };
 
-  const toggle = async todo => {
+  const toggle = async (todo) => {
     try {
       const { data } = await axios.put(`${API_URL}/todos/${todo._id}`, {
         completed: !todo.completed,
       });
-      setTodos(prev => prev.map(t => (t._id === data._id ? data : t)).filter(matchesFilters));
-      setTotals(t => ({
+      setTodos((prev) =>
+        prev.map((t) => (t._id === data._id ? data : t)).filter(matchesFilters),
+      );
+      setTotals((t) => ({
         ...t,
         completed: t.completed + (data.completed ? 1 : -1),
         pending: t.pending + (data.completed ? -1 : 1),
@@ -105,12 +116,12 @@ export default function TodoApp() {
     }
   };
 
-  const remove = async todo => {
+  const remove = async (todo) => {
     if (!window.confirm(`Удалить задачу «${todo.title}»?`)) return;
     try {
       await axios.delete(`${API_URL}/todos/${todo._id}`);
-      setTodos(prev => prev.filter(t => t._id !== todo._id));
-      setTotals(t => ({
+      setTodos((prev) => prev.filter((t) => t._id !== todo._id));
+      setTotals((t) => ({
         all: t.all - 1,
         completed: t.completed - (todo.completed ? 1 : 0),
         pending: t.pending - (todo.completed ? 0 : 1),
@@ -120,7 +131,7 @@ export default function TodoApp() {
     }
   };
 
-  const onFilter = e => {
+  const onFilter = (e) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
     setPage(1);
   };
@@ -129,7 +140,8 @@ export default function TodoApp() {
     <div className="todo-app">
       <h1>Fullstack Todo</h1>
       <div className="todo-stats">
-        Total: {totals.all} · Completed: {totals.completed} · At work: {totals.pending}
+        Total: {totals.all} · Completed: {totals.completed} · At work:{" "}
+        {totals.pending}
       </div>
 
       {error && <div className="error">{error}</div>}
@@ -157,16 +169,21 @@ export default function TodoApp() {
               </option>
             ))}
           </select>
-          <input type="date" name="dueDate" value={form.dueDate} onChange={onChange} />
+          <input
+            type="date"
+            name="dueDate"
+            value={form.dueDate}
+            onChange={onChange}
+          />
           <input
             type="file"
             multiple
             ref={fileInput}
-            onChange={e => setFiles(Array.from(e.target.files))}
+            onChange={(e) => setFiles(Array.from(e.target.files))}
           />
         </div>
         <button type="submit" disabled={submitting}>
-          {submitting ? 'Сохранение…' : 'Добавить задачу'}
+          {submitting ? "Сохранение…" : "Добавить задачу"}
         </button>
       </form>
 
@@ -189,23 +206,25 @@ export default function TodoApp() {
       {loading && <p>Загрузка…</p>}
       {!loading && todos.length === 0 && <p>Задач пока нет.</p>}
 
-      {todos.map(todo => (
+      {todos.map((todo) => (
         <div
           key={todo._id}
-          className={`todo-item ${todo.priority} ${todo.completed ? 'done' : ''}`}
+          className={`todo-item ${todo.priority} ${todo.completed ? "done" : ""}`}
         >
           <div className="todo-head">
             <div>
               <div className="todo-title">{todo.title}</div>
               <div className="todo-meta">
                 <span className="badge">{PRIORITY_LABELS[todo.priority]}</span>
-                <span className="badge">{todo.completed ? 'Выполнено' : 'В работе'}</span>
+                <span className="badge">
+                  {todo.completed ? "Выполнено" : "В работе"}
+                </span>
                 {todo.dueDate && <span>Срок: {formatDate(todo.dueDate)}</span>}
               </div>
             </div>
             <div className="todo-actions">
               <button className="secondary" onClick={() => toggle(todo)}>
-                {todo.completed ? 'Вернуть' : 'Завершить'}
+                {todo.completed ? "Вернуть" : "Завершить"}
               </button>
               <button className="danger" onClick={() => remove(todo)}>
                 Удалить
@@ -215,12 +234,16 @@ export default function TodoApp() {
           {todo.description && <p>{todo.description}</p>}
           {todo.attachments?.length > 0 && (
             <ul className="attachments">
-              {todo.attachments.map(a => (
+              {todo.attachments.map((a) => (
                 <li key={a.filename}>
-                  📎{' '}
-                  <a href={`${FILES_BASE}${a.filename}`} target="_blank" rel="noopener noreferrer">
+                  📎{" "}
+                  <a
+                    href={`${FILES_BASE}${a.filename}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     {a.originalName}
-                  </a>{' '}
+                  </a>{" "}
                   ({formatSize(a.size)})
                 </li>
               ))}
@@ -231,7 +254,11 @@ export default function TodoApp() {
 
       {pagination.pages > 1 && (
         <div className="pager">
-          <button className="secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+          <button
+            className="secondary"
+            disabled={page <= 1}
+            onClick={() => setPage(page - 1)}
+          >
             ← Назад
           </button>
           <span>

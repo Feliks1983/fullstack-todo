@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const Priority = ['low', 'medium', 'high'];
+const Priority = ["low", "medium", "high"];
 
 const attachmentSchema = new mongoose.Schema(
   {
@@ -10,25 +10,30 @@ const attachmentSchema = new mongoose.Schema(
     size: { type: Number, required: true },
     uploadedAt: { type: Date, default: Date.now },
   },
-  { _id: false }
+  { _id: false },
 );
 
-const todoSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  description: { type: String, trim: true, default: '' },
-  completed: { type: Boolean, default: false },
-  priority: {
-    type: String,
-    enum: {
-      values: Priority,
-      message: 'Priority must be one of: low, medium, high',
+const todoSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true },
+    description: { type: String, trim: true, default: "" },
+    completed: { type: Boolean, default: false },
+    priority: {
+      type: String,
+      enum: {
+        values: Priority,
+        message: "Priority must be one of: low, medium, high",
+      },
+      default: "medium",
     },
-    default: 'medium',
+    dueDate: { type: Date, default: null },
+    createdAt: { type: Date, default: null },
+    updatedAt: { type: Date, default: null },
+    attachments: { type: [attachmentSchema], default: [] },
   },
-  dueDate: { type: Date, default: null },
-  attachments: { type: [attachmentSchema], default: [] },
-});
+  { timestamps: true },
+);
 
-const Todo = mongoose.model('Todo', todoSchema);
+const Todo = mongoose.model("Todo", todoSchema);
 
 module.exports = { attachmentSchema, todoSchema, Todo };

@@ -1,4 +1,4 @@
-const redis = require('redis');
+const redis = require("redis");
 
 class RedisCache {
   constructor() {
@@ -9,12 +9,12 @@ class RedisCache {
       maxRetriesPerRequest: 3,
     });
 
-    this.client.on('error', err => {
-      console.error('Redis Cache Error:', err);
+    this.client.on("error", (err) => {
+      console.error("Redis Cache Error:", err);
     });
 
-    this.client.on('connect', () => {
-      console.log('Redis Cache connected');
+    this.client.on("connect", () => {
+      console.log("Redis Cache connected");
     });
   }
 
@@ -27,7 +27,7 @@ class RedisCache {
       const value = await this.client.get(key);
       return value ? JSON.parse(value) : null;
     } catch (error) {
-      console.error('Cache get error:', error);
+      console.error("Cache get error:", error);
       return null;
     }
   }
@@ -36,7 +36,7 @@ class RedisCache {
     try {
       await this.client.setEx(key, ttl, JSON.stringify(value));
     } catch (error) {
-      console.error('Cache set error:', error);
+      console.error("Cache set error:", error);
     }
   }
 
@@ -44,7 +44,7 @@ class RedisCache {
     try {
       await this.client.del(key);
     } catch (error) {
-      console.error('Cache delete error:', error);
+      console.error("Cache delete error:", error);
     }
   }
 
@@ -55,32 +55,36 @@ class RedisCache {
         await this.client.del(keys);
       }
     } catch (error) {
-      console.error('Cache delete pattern error:', error);
+      console.error("Cache delete pattern error:", error);
     }
   }
 
   generateKey(prefix, ...parts) {
-    return `${prefix}:${parts.join(':')}`;
+    return `${prefix}:${parts.join(":")}`;
   }
 }
 
 // Cache middleware
 function cacheMiddleware(ttl = 300) {
   return async (req, res, next) => {
-    if (req.method !== 'GET' || req.path === '/health' || !redisCache.client.isReady) {
+    if (
+      req.method !== "GET" ||
+      req.path === "/health" ||
+      !redisCache.client.isReady
+    ) {
       return next();
     }
 
-    const cacheKey = `api:${req.originalUrl}:${req.user?.userId || 'anonymous'}`;
+    const cacheKey = `api:${req.originalUrl}:${req.user?.userId || "anonymous"}`;
 
     try {
       const cached = await redisCache.get(cacheKey);
       if (cached) {
-        res.set('X-Cache', 'HIT');
+        res.set("X-Cache", "HIT");
         return res.json(cached);
       }
 
-      res.set('X-Cache', 'MISS');
+      res.set("X-Cache", "MISS");
 
       // Override res.json to cache the response
       const originalJson = res.json;
@@ -93,7 +97,7 @@ function cacheMiddleware(ttl = 300) {
 
       next();
     } catch (error) {
-      console.error('Cache middleware error:', error);
+      console.error("Cache middleware error:", error);
       next();
     }
   };

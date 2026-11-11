@@ -5,8 +5,6 @@ services:
       context: ./frontend
       args:
         REACT_APP_API_URL: /api
-    environment:
-      - REACT_APP_API_URL=/api
     depends_on:
       backend:
         condition: service_healthy
@@ -23,15 +21,15 @@ services:
       - REDIS_URL=redis://redis:6379
       - CORS_ORIGIN=http://localhost:3000
       - MAX_FILE_SIZE=5242880
-      - UPLOAD_DIR=/app/backend/uploads
+      - UPLOAD_DIR=/app/uploads
       - LOG_LEVEL=debug
       - JWT_SECRET=change_me_to_a_random_string_of_at_least_32_chars
       - ENABLE_ANALYTICS=true
       - ENABLE_FILE_UPLOAD=true
       - ENABLE_METRICS=false
     volumes:
-      - ./uploads:/app/backend/uploads
-      - ./logs:/app/backend/logs
+      - ./backend/uploads:/app/uploads
+      - app-logs:/app/logs
     depends_on:
       mongo:
         condition: service_healthy
@@ -50,6 +48,8 @@ services:
   mongo:
     image: mongo:6
     container_name: todo-mongo
+    ports:
+      - "127.0.0.1:27018:27017"
     environment:
       - MONGO_INITDB_DATABASE=todoapp
     volumes:
@@ -68,6 +68,8 @@ services:
   redis:
     image: redis:7-alpine
     command: redis-server --appendonly yes
+    ports:
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis-data:/data
     healthcheck:
@@ -113,3 +115,4 @@ volumes:
     name: todo_mongo-data
   redis-data:
     name: todo_redis-data
+  app-logs:
